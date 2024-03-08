@@ -23,5 +23,5 @@ bash setup.sh
 ```
 ## Uso
 ```bash
-bash run.sh
+. venv/bin/activate &&  python3 app.py
 ```

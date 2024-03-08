@@ -72,8 +72,10 @@ def redirect_to_original(short_code):
 if __name__ == '__main__':
     from waitress import serve
     try:
-        logger.info("Listening on port 8080")
+        logger.info("Servidor online em http://0.0.0.0:8080")
+        print("Servidor online em http://0.0.0.0:8080")
         create_table()
         serve(app, host="0.0.0.0", port=8080)
     except Exception as e:
+        print(("Erro ao subir o servidor: %s", str(e)))
         logger.error("Erro ao subir o servidor: %s", str(e))

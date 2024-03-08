@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Verifique se o script é executado como root
+if [ "$(id -u)" != "0" ]; then
+    echo "Este script deve ser executado como root!"
+    exit 1
+fi
+
 # Python3 Verificação
 if ! [ -x "$(command -v python3)" ]; then
     echo '[ERRO] python3 não está instalado.' >&2
@@ -24,12 +30,12 @@ if [ $? -eq 0 ]; then
     python3 -m pip install --no-cache-dir --upgrade pip --user
 else
     echo '[ALERTA] python3-pip não está instalado'
-    sudo apt install python3-pip -y
+     apt install python3-pip -y
     python3 -m pip install --no-cache-dir --upgrade pip --user
 fi
 
 # Instalação do venv
-sudo apt install python3-venv -y
+ apt install python3-venv -y
 echo '[INSTALAÇÃO] Usando virtualenv Python'
 rm -rf ./venv
 python3 -m venv ./venv
@@ -43,11 +49,48 @@ else
 fi
 
 # Instalação do screen
-[[ ! $(which screen 2>/dev/null) ]] && echo -e "[ALERTA] screen não está instalado." && sudo apt install screen -y
+[[ ! $(which screen 2>/dev/null) ]] && echo -e "[ALERTA] screen não está instalado." &&  apt install screen -y
 
 echo '[INSTALAÇÃO] Instalando Requisitos'
 pip3 install --no-cache-dir wheel
 pip3 install --no-cache-dir --use-deprecated=legacy-resolver -r requirements.txt
 
 # Configuração do log e log rotate
-sudo bash configure_log_rotation.sh
+log_file="/var/log/url_shortener.log"
+log_config="/etc/rsyslog.d/url_shortener_log_rotation.conf"
+
+# Verifique se o arquivo de log já existe
+if [ ! -f "$log_file" ]; then
+    # Se não existe, cria o arquivo e define as permissões apropriadas
+    touch "$log_file"
+    chmod 644 "$log_file"
+    chown $SUDO_USER:adm "$log_file"  # Alterado para definir o proprietário apropriado
+
+    echo "Arquivo de log criado em $log_file"
+
+    # Crie o arquivo de configuração de rotação
+    cat <<EOF > "$log_config"
+$log_file {
+    size 5M
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 0640 $SUDO_USER adm
+    sharedscripts
+    postrotate
+        /usr/bin/killall -HUP rsyslogd
+    endscript
+}
+EOF
+    echo "Configuração de rotação de log para $log_file foi criada."
+
+    # Reinicie o serviço rsyslog para aplicar as alterações
+    systemctl restart rsyslog
+else
+    echo "O arquivo de log $log_file já existe."
+fi
+
+echo -e "Configurações finalizadas"
