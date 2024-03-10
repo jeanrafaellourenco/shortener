@@ -19,7 +19,7 @@ O projeto inclui as seguintes funcionalidades:
 Antes de começar, certifique-se de ter instalado o Python e as bibliotecas necessárias. Você pode instalar as dependências executando:
 
 ```bash
-bash setup.sh
+sudo bash setup.sh
 ```
 ## Uso
 ```bash
