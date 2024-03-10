@@ -2,7 +2,7 @@
 
 # Verifique se o script é executado como root
 if [ "$(id -u)" != "0" ]; then
-    echo "Este script deve ser executado como root!"
+    echo "Este script deve ser executado com sudo!"
     exit 1
 fi
 
